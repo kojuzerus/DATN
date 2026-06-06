@@ -7,7 +7,7 @@ const passport = require("./config/passport");
 
 const productRoutes = require("./routes/product");
 const authRoutes    = require("./routes/auth");
-
+const cartRoutes = require("./routes/cart");
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
@@ -21,7 +21,7 @@ app.use(passport.initialize());
 
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/cart", cartRoutes);
 app.get("/api/health", (_, res) =>
   res.json({ status: "ok", time: new Date().toISOString() })
 );

@@ -551,7 +551,7 @@ export default function Header() {
               </div>
             ) : (
               <Link
-                href="/dangnhap"
+                href="/login"
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors"
               >
                 <User className="w-4 h-4" />
@@ -631,7 +631,7 @@ export default function Header() {
               </button>
             ) : (
               <Link
-                href="/dangnhap"
+                href="/login"
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-sm transition-colors"
               >
                 <User className="w-5 h-5" />
