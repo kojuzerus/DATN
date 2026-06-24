@@ -1,20 +1,27 @@
 'use client';
-import { X, ArrowRight, Repeat, Trash2 } from 'lucide-react';
+import { X, ArrowRight, Repeat, Trash2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useComparison } from './comparisonContext';
 
 export default function ComparisonBar() {
-  const { items, removeItem, clearItems } = useComparison();
+  const { items, removeItem, clearItems, openModal } = useComparison();
 
   if (items.length === 0) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-red-500 shadow-[0_-4px_20px_rgba(0,0,0,0.12)]">
       <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center gap-4">
-        <div className="flex items-center gap-1.5 text-red-600 font-semibold text-sm flex-shrink-0">
-          <Repeat className="w-4 h-4" />
-          <span className="hidden sm:inline">So sánh ({items.length}/3)</span>
-          <span className="sm:hidden">{items.length}/3</span>
+        <div className="flex flex-col flex-shrink-0">
+          <div className="flex items-center gap-1.5 text-red-600 font-semibold text-sm">
+            <Repeat className="w-4 h-4" />
+            <span className="hidden sm:inline">So sánh ({items.length}/3)</span>
+            <span className="sm:hidden">{items.length}/3</span>
+          </div>
+          {items[0]?.categoryName && (
+            <span className="hidden sm:block text-[10px] text-gray-400 font-normal ml-5 -mt-0.5">
+              Danh mục: {items[0].categoryName}
+            </span>
+          )}
         </div>
 
         <div className="flex-1 flex items-center gap-2 overflow-x-auto">
@@ -42,12 +49,15 @@ export default function ComparisonBar() {
           ))}
 
           {Array.from({ length: 3 - items.length }).map((_, i) => (
-            <div
+            <button
               key={i}
-              className="hidden sm:flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-1.5 border border-dashed border-gray-300 h-[42px] min-w-[120px]"
+              onClick={() => items.length > 0 && openModal(items[0].categoryName)}
+              disabled={items.length === 0}
+              className="hidden sm:flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-1.5 border border-dashed border-gray-300 h-[42px] min-w-[120px] hover:border-red-300 hover:bg-red-50 transition-colors disabled:pointer-events-none"
             >
+              <Plus className="w-3.5 h-3.5 text-gray-400" />
               <span className="text-xs text-gray-400">Thêm sản phẩm</span>
-            </div>
+            </button>
           ))}
         </div>
 

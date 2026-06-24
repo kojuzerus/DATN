@@ -143,7 +143,22 @@ export default function ProductDetailPage() {
 
   const tabRef = useRef<HTMLDivElement>(null);
   const { addToCart, adding } = useCart();
-  const { addItem, removeItem, isInComparison } = useComparison();
+  const { addItem, removeItem, isInComparison, items: compareItems, openModal } = useComparison();
+  const [compareToast, setCompareToast] = useState<string | null>(null);
+
+  const handleCompare = (prod: { id: number; ten: string; slug: string; thumbnail: string; gia: number; giaSale: number | null; giamGia: number; danhGia: number; thuongHieu: string; categoryName: string }) => {
+    if (isInComparison(prod.id)) { removeItem(prod.id); return; }
+    const result = addItem(prod);
+    if (result === 'ok') {
+      openModal(prod.categoryName);
+    } else if (result === 'category_mismatch') {
+      setCompareToast(`Chỉ so sánh cùng danh mục "${compareItems[0]?.categoryName ?? ''}"`);
+      setTimeout(() => setCompareToast(null), 3000);
+    } else if (result === 'max') {
+      setCompareToast('Tối đa 3 sản phẩm trong danh sách so sánh');
+      setTimeout(() => setCompareToast(null), 3000);
+    }
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -568,24 +583,30 @@ export default function ProductDetailPage() {
               {product && (() => {
                 const inCompare = isInComparison(product.id);
                 return (
-                  <button
-                    onClick={() => inCompare
-                      ? removeItem(product.id)
-                      : addItem({
-                          id: product.id, ten: product.ten, slug: product.slug,
-                          thumbnail: product.thumbnail, gia: product.gia,
-                          giaSale: product.giaSale, giamGia: product.giamGia,
-                          danhGia: product.danhGia, thuongHieu: product.thuongHieu,
-                          categoryName: product.categoryName,
-                        })
-                    }
-                    title={inCompare ? "Đang so sánh" : "So sánh sản phẩm"}
-                    className={`w-11 h-11 flex-shrink-0 border-2 rounded-xl flex items-center justify-center transition-all ${
-                      inCompare ? "border-red-400 bg-red-50 text-red-500" : "border-gray-200 text-gray-400 hover:border-red-300"
-                    }`}
-                  >
-                    <Repeat className="w-4 h-4" />
-                  </button>
+                  <div className="relative">
+                    {compareToast && (
+                      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-30 w-max max-w-[220px] pointer-events-none">
+                        <span className="bg-gray-900/90 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg shadow-lg text-center block">
+                          {compareToast}
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleCompare({
+                        id: product.id, ten: product.ten, slug: product.slug,
+                        thumbnail: product.thumbnail, gia: product.gia,
+                        giaSale: product.giaSale, giamGia: product.giamGia,
+                        danhGia: product.danhGia, thuongHieu: product.thuongHieu,
+                        categoryName: product.categoryName,
+                      })}
+                      title={inCompare ? "Đang so sánh" : "So sánh sản phẩm"}
+                      className={`w-11 h-11 flex-shrink-0 border-2 rounded-xl flex items-center justify-center transition-all ${
+                        inCompare ? "border-red-400 bg-red-50 text-red-500" : "border-gray-200 text-gray-400 hover:border-red-300"
+                      }`}
+                    >
+                      <Repeat className="w-4 h-4" />
+                    </button>
+                  </div>
                 );
               })()}
             </div>

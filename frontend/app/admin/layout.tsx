@@ -20,8 +20,11 @@ import {
   LogOut,
   Home,
   ChevronRight,
+  Sun,
+  Moon,
   type LucideIcon,
 } from "lucide-react";
+import { useTheme } from "../components/ThemeContext";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -84,6 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname  = usePathname();
   const [search, setSearch] = useState("");
   const pageLabel = getPageLabel(pathname ?? "");
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (href: string) =>
     href === "/admin"
@@ -193,6 +197,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           {/* Right actions */}
           <div className="flex items-center gap-2 ml-auto">
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Chuyển sang nền sáng" : "Chuyển sang nền tối"}
+              aria-label="Đổi giao diện sáng/tối"
+              className="w-9 h-9 rounded-xl border border-gray-200 bg-white flex items-center justify-center cursor-pointer hover:border-[#D32F2F] hover:bg-[#FFF5F5] transition-all duration-150"
+            >
+              {theme === "dark" ? (
+                <Sun size={16} className="text-amber-400" />
+              ) : (
+                <Moon size={16} className="text-gray-500" />
+              )}
+            </button>
 
             {/* Bell */}
             <button

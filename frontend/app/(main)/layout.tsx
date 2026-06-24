@@ -3,6 +3,7 @@ import Footer from "../components/Footer";
 import { SearchProvider } from "../components/searchContext";
 import { ComparisonProvider } from "../components/comparisonContext";
 import ComparisonBar from "../components/ComparisonBar";
+import ComparisonModal from "../components/ComparisonModal";
 
 export default function MainLayout({
   children,
@@ -18,6 +19,7 @@ export default function MainLayout({
         </main>
         <Footer />
         <ComparisonBar />
+        <ComparisonModal />
       </ComparisonProvider>
     </SearchProvider>
   );

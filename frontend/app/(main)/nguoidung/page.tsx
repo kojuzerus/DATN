@@ -8,6 +8,7 @@ import {
   Edit3, Check, X, ChevronRight, Package,
   LogOut, Camera, Eye, EyeOff, MapPin,
   Plus, Trash2, Star, Home,
+  Clock, CheckCircle2, Truck, PackageCheck, XCircle, ShoppingBag,
 } from 'lucide-react';
 import SearchableSelect, { SelectOption } from '../../components/SearchableSelect';
 
@@ -26,6 +27,24 @@ interface Address {
   province: string; district: string; ward: string;
   detailAddress: string; isDefault: boolean;
 }
+
+type OrderStatus = 'cho_xac_nhan' | 'da_xac_nhan' | 'dang_giao' | 'da_giao' | 'da_huy';
+
+interface OrderSummary {
+  _id: string;
+  items: { tenSanPham: string; hinhAnh: string; soLuong: number; variant: string }[];
+  tongThanhToan: number;
+  trangThai: OrderStatus;
+  createdAt: string;
+}
+
+const ORDER_STATUS: Record<OrderStatus, { label: string; bg: string; text: string; Icon: React.ElementType }> = {
+  cho_xac_nhan: { label: 'Chờ xác nhận', bg: 'bg-yellow-100', text: 'text-yellow-700', Icon: Clock },
+  da_xac_nhan:  { label: 'Đã xác nhận',  bg: 'bg-blue-100',   text: 'text-blue-700',   Icon: CheckCircle2 },
+  dang_giao:    { label: 'Đang giao',     bg: 'bg-purple-100', text: 'text-purple-700', Icon: Truck },
+  da_giao:      { label: 'Đã giao',       bg: 'bg-green-100',  text: 'text-green-700',  Icon: PackageCheck },
+  da_huy:       { label: 'Đã hủy',        bg: 'bg-red-100',    text: 'text-red-600',    Icon: XCircle },
+};
 
 interface AddrForm {
   receiverName: string; phone: string;
@@ -80,6 +99,10 @@ export default function NguoiDungPage() {
   const [pwErr, setPwErr]           = useState('');
   const [pwSaving, setPwSaving]     = useState(false);
 
+  // ── Orders ──
+  const [myOrders, setMyOrders]         = useState<OrderSummary[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
   // ── Address list ──
   const [addresses, setAddresses]   = useState<Address[]>([]);
   const [addrLoading, setAddrLoading] = useState(false);
@@ -119,6 +142,22 @@ export default function NguoiDungPage() {
       .catch(() => router.replace('/login'))
       .finally(() => setLoading(false));
   }, [router]);
+
+  // ── Fetch orders ────────────────────────────────────────────────────────────
+  const fetchMyOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/api/orders`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const d = await r.json();
+      if (d.success) setMyOrders(d.orders);
+    } finally { setOrdersLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    if (tab === 'orders' && user) fetchMyOrders();
+  }, [tab, user, fetchMyOrders]);
 
   // ── Fetch addresses ─────────────────────────────────────────────────────────
   const fetchAddresses = useCallback(async () => {
@@ -717,20 +756,111 @@ export default function NguoiDungPage() {
           {/* ── Tab: Đơn hàng ── */}
           {tab === 'orders' && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h1 className="text-base font-bold text-gray-800">Đơn hàng của tôi</h1>
-                <p className="text-xs text-gray-400 mt-0.5">Theo dõi và quản lý đơn hàng</p>
-              </div>
-              <div className="px-6 py-16 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Package className="w-9 h-9 text-gray-300" />
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div>
+                  <h1 className="text-base font-bold text-gray-800">Đơn hàng của tôi</h1>
+                  <p className="text-xs text-gray-400 mt-0.5">Theo dõi và quản lý đơn hàng</p>
                 </div>
-                <p className="text-gray-500 font-medium">Chưa có đơn hàng nào</p>
-                <p className="text-sm text-gray-400 mt-1">Hãy mua sắm và quay lại đây để theo dõi đơn hàng</p>
-                <Link href="/sanpham" className="mt-5 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-colors">
-                  Mua sắm ngay
-                </Link>
+                {myOrders.length > 0 && (
+                  <Link
+                    href="/don-hang"
+                    className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+                  >
+                    Xem tất cả <ChevronRight className="w-3 h-3" />
+                  </Link>
+                )}
               </div>
+
+              {ordersLoading ? (
+                <div className="p-6 space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="animate-pulse border border-gray-100 rounded-2xl p-4 space-y-3">
+                      <div className="flex justify-between">
+                        <div className="h-3 bg-gray-100 rounded w-32" />
+                        <div className="h-5 bg-gray-100 rounded-full w-24" />
+                      </div>
+                      <div className="flex gap-3">
+                        <div className="w-14 h-14 bg-gray-100 rounded-xl shrink-0" />
+                        <div className="flex-1 space-y-2 pt-1">
+                          <div className="h-3 bg-gray-100 rounded w-3/4" />
+                          <div className="h-3 bg-gray-100 rounded w-1/2" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : myOrders.length === 0 ? (
+                <div className="px-6 py-16 flex flex-col items-center text-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <Package className="w-9 h-9 text-gray-300" />
+                  </div>
+                  <p className="text-gray-500 font-medium">Chưa có đơn hàng nào</p>
+                  <p className="text-sm text-gray-400 mt-1">Hãy mua sắm và quay lại đây để theo dõi đơn hàng</p>
+                  <Link href="/sanpham" className="mt-5 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-colors inline-flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4" />Mua sắm ngay
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {myOrders.slice(0, 5).map(order => {
+                    const s = ORDER_STATUS[order.trangThai];
+                    const first = order.items[0];
+                    return (
+                      <div key={order._id} className="px-6 py-4">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <div>
+                            <p className="text-xs text-gray-400 font-mono">
+                              #{order._id.slice(-10).toUpperCase()}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              {new Date(order.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            </p>
+                          </div>
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${s.bg} ${s.text}`}>
+                            <s.Icon className="w-3 h-3" />{s.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {first.hinhAnh ? (
+                            <img src={first.hinhAnh} alt={first.tenSanPham} className="w-12 h-12 object-cover rounded-xl border border-gray-100 shrink-0" />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
+                              <Package className="w-5 h-5 text-gray-300" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 line-clamp-1">{first.tenSanPham}</p>
+                            {first.variant && <p className="text-xs text-gray-400 mt-0.5">{first.variant}</p>}
+                            {order.items.length > 1 && (
+                              <p className="text-xs text-gray-400 mt-0.5">+{order.items.length - 1} sản phẩm khác</p>
+                            )}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-bold text-red-600">
+                              {order.tongThanhToan.toLocaleString('vi-VN')}₫
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex justify-end mt-3">
+                          <Link
+                            href={`/don-hang/${order._id}`}
+                            className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors font-medium"
+                          >
+                            Xem chi tiết <ChevronRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {myOrders.length > 5 && (
+                    <div className="px-6 py-4 text-center">
+                      <Link href="/don-hang" className="text-sm text-red-500 hover:text-red-600 font-medium transition-colors">
+                        Xem thêm {myOrders.length - 5} đơn hàng →
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

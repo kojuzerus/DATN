@@ -33,23 +33,36 @@ const SORT_OPTIONS = [
 
 /* ── Product Card ───────────────────────────────────────────────────────── */
 function ProductCard({ p }: { p: Product }) {
-  const { addItem, removeItem, isInComparison } = useComparison();
+  const { addItem, removeItem, isInComparison, items, openModal } = useComparison();
   const inCompare = isInComparison(p.id);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const handleCompare = () => {
     if (inCompare) {
       removeItem(p.id);
-    } else {
-      addItem({
-        id: p.id, ten: p.ten, slug: p.slug, thumbnail: p.thumbnail,
-        gia: p.gia, giaSale: p.giaSale, giamGia: p.giamGia,
-        danhGia: p.danhGia, thuongHieu: p.thuongHieu, categoryName: p.categoryName,
-      });
+      return;
+    }
+    const result = addItem({
+      id: p.id, ten: p.ten, slug: p.slug, thumbnail: p.thumbnail,
+      gia: p.gia, giaSale: p.giaSale, giamGia: p.giamGia,
+      danhGia: p.danhGia, thuongHieu: p.thuongHieu, categoryName: p.categoryName,
+    });
+    if (result === 'ok') {
+      openModal(p.categoryName);
+    } else if (result === 'category_mismatch') {
+      showToast(`Chỉ so sánh cùng danh mục "${items[0]?.categoryName ?? ''}"`);
+    } else if (result === 'max') {
+      showToast('Tối đa 3 sản phẩm trong danh sách so sánh');
     }
   };
 
   return (
-    <div className="group flex flex-col h-full">
+    <div className="group flex flex-col h-full relative">
       <Link href={`/sanpham/${p.slug}`} className="flex-1 block">
         <div className="bg-white border border-gray-100 rounded-t-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col h-full relative">
           {p.badge && (
@@ -90,6 +103,13 @@ function ProductCard({ p }: { p: Product }) {
           </div>
         </div>
       </Link>
+      {toast && (
+        <div className="absolute bottom-11 left-0 right-0 z-20 flex justify-center pointer-events-none">
+          <span className="bg-gray-900/90 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg shadow-lg text-center max-w-[90%]">
+            {toast}
+          </span>
+        </div>
+      )}
       <button
         onClick={handleCompare}
         className={`flex items-center justify-center gap-1.5 py-2 text-[11px] font-medium rounded-b-2xl border border-t-0 transition-all ${

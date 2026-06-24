@@ -66,6 +66,11 @@ export default function ComparisonPage() {
   const [loading, setLoading] = useState(true);
   const { addToCart, adding } = useCart();
 
+  // Detect if items have mixed categories (safety net for stale localStorage)
+  const hasMixedCategories =
+    items.length > 1 &&
+    !items.every(p => p.categoryName === items[0].categoryName);
+
   useEffect(() => {
     if (items.length === 0) {
       setProducts([]);
@@ -113,6 +118,26 @@ export default function ComparisonPage() {
           </button>
         )}
       </div>
+
+      {hasMixedCategories && (
+        <div className="mb-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <span className="text-amber-500 text-base mt-0.5">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-800">
+              Danh sách so sánh chứa sản phẩm khác danh mục
+            </p>
+            <p className="text-xs text-amber-600 mt-0.5">
+              Chỉ có thể so sánh các sản phẩm cùng danh mục (ví dụ: chỉ điện thoại với điện thoại).
+            </p>
+          </div>
+          <button
+            onClick={clearItems}
+            className="text-xs font-semibold text-amber-700 hover:text-red-600 border border-amber-300 rounded-lg px-3 py-1.5 hover:border-red-300 transition-colors shrink-0"
+          >
+            Xóa và chọn lại
+          </button>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="text-center py-20">
