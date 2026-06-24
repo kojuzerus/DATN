@@ -1,7 +1,9 @@
-'use client';
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+"use client";
 
-export interface ComparisonProduct {
+import { useEffect, useState } from "react";
+
+/* ── Types ─────────────────────────────────────────────────────────────── */
+export interface ComparisonItem {
   id: number;
   ten: string;
   slug: string;
@@ -14,108 +16,69 @@ export interface ComparisonProduct {
   categoryName: string;
 }
 
-export type AddResult = 'ok' | 'max' | 'duplicate' | 'category_mismatch';
+const STORAGE_KEY = "smarthub_so_sanh";
+const EVENT_NAME = "comparison-updated";
+const MAX_ITEMS = 3;
 
-interface ComparisonContextType {
-  items: ComparisonProduct[];
-  addItem: (p: ComparisonProduct) => AddResult;
-  removeItem: (id: number) => void;
-  clearItems: () => void;
-  isInComparison: (id: number) => boolean;
-  modalOpen: boolean;
-  modalCategoryName: string;
-  openModal: (categoryName: string) => void;
-  closeModal: () => void;
+function docDanhSach(): ComparisonItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
 }
 
-const ComparisonContext = createContext<ComparisonContextType>({
-  items: [],
-  addItem: () => 'ok',
-  removeItem: () => {},
-  clearItems: () => {},
-  isInComparison: () => false,
-  modalOpen: false,
-  modalCategoryName: '',
-  openModal: () => {},
-  closeModal: () => {},
-});
+function luuVaBao(items: ComparisonItem[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  window.dispatchEvent(new Event(EVENT_NAME));
+}
 
-export function ComparisonProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<ComparisonProduct[]>([]);
-  const itemsRef = useRef<ComparisonProduct[]>([]);
+/* ── Hook so sánh sản phẩm ─────────────────────────────────────────────────
+   Không dùng React Context/Provider — đồng bộ qua localStorage + custom
+   event, giống cách useCart() đang dùng event "cart-updated". Nhờ vậy
+   không cần bọc <ComparisonProvider> ở layout, gọi useComparison() ở bất
+   kỳ component nào cũng dùng được ngay.
+──────────────────────────────────────────────────────────────────────────── */
+export function useComparison() {
+  const [items, setItems] = useState<ComparisonItem[]>([]);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalCategoryName, setModalCategoryName] = useState('');
-
-  // Keep ref in sync with state
   useEffect(() => {
-    itemsRef.current = items;
-  }, [items]);
-
-  // Load from localStorage and validate same-category invariant
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('smarthub_compare');
-      if (!stored) return;
-      const parsed: ComparisonProduct[] = JSON.parse(stored);
-      const allSameCategory =
-        parsed.length === 0 ||
-        parsed.every(p => p.categoryName === parsed[0].categoryName);
-      if (!allSameCategory) {
-        localStorage.removeItem('smarthub_compare');
-        return;
-      }
-      setItems(parsed);
-      itemsRef.current = parsed;
-    } catch {
-      localStorage.removeItem('smarthub_compare');
-    }
+    setItems(docDanhSach());
+    const onUpdate = () => setItems(docDanhSach());
+    window.addEventListener(EVENT_NAME, onUpdate);
+    window.addEventListener("storage", onUpdate);
+    return () => {
+      window.removeEventListener(EVENT_NAME, onUpdate);
+      window.removeEventListener("storage", onUpdate);
+    };
   }, []);
 
-  const addItem = (p: ComparisonProduct): AddResult => {
-    const prev = itemsRef.current;
-    if (prev.some(x => x.id === p.id)) return 'duplicate';
-    if (prev.length >= 3) return 'max';
-    if (prev.length > 0 && prev[0].categoryName !== p.categoryName) return 'category_mismatch';
-    const next = [...prev, p];
-    itemsRef.current = next;
+  const addItem = (item: ComparisonItem) => {
+    const current = docDanhSach();
+    if (current.some((p) => p.id === item.id)) return;
+    if (current.length >= MAX_ITEMS) {
+      alert(`Chỉ có thể so sánh tối đa ${MAX_ITEMS} sản phẩm.`);
+      return;
+    }
+    const next = [...current, item];
+    luuVaBao(next);
     setItems(next);
-    localStorage.setItem('smarthub_compare', JSON.stringify(next));
-    return 'ok';
   };
 
   const removeItem = (id: number) => {
-    const next = itemsRef.current.filter(x => x.id !== id);
-    itemsRef.current = next;
+    const next = docDanhSach().filter((p) => p.id !== id);
+    luuVaBao(next);
     setItems(next);
-    localStorage.setItem('smarthub_compare', JSON.stringify(next));
   };
+
+  const isInComparison = (id: number) => items.some((p) => p.id === id);
 
   const clearItems = () => {
-    itemsRef.current = [];
+    luuVaBao([]);
     setItems([]);
-    localStorage.removeItem('smarthub_compare');
   };
 
-  const isInComparison = (id: number) => itemsRef.current.some(x => x.id === id);
-
-  const openModal = (categoryName: string) => {
-    setModalCategoryName(categoryName);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => setModalOpen(false);
-
-  return (
-    <ComparisonContext.Provider value={{
-      items, addItem, removeItem, clearItems, isInComparison,
-      modalOpen, modalCategoryName, openModal, closeModal,
-    }}>
-      {children}
-    </ComparisonContext.Provider>
-  );
-}
-
-export function useComparison() {
-  return useContext(ComparisonContext);
+  return { items, addItem, removeItem, isInComparison, clearItems };
 }

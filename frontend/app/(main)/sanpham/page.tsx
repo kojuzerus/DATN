@@ -4,7 +4,13 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  Star, ChevronRight, X, Package, Home, ChevronDown, Repeat,
+  Star,
+  ChevronRight,
+  X,
+  Package,
+  Home,
+  ChevronDown,
+  Repeat,
 } from "lucide-react";
 import { useComparison } from "../../components/comparisonContext";
 
@@ -12,57 +18,72 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 interface Product {
-  id: number; ten: string; slug: string; thuongHieu: string;
-  thumbnail: string; moTa: string; gia: number; giaSale: number | null;
-  giamGia: number; danhGia: number; luotBan: number; badge: string;
+  id: number;
+  ten: string;
+  slug: string;
+  thuongHieu: string;
+  thumbnail: string;
+  moTa: string;
+  gia: number;
+  giaSale: number | null;
+  giamGia: number;
+  danhGia: number;
+  luotBan: number;
+  badge: string;
   categoryName: string;
 }
-interface Category { category_id: number; category_name: string; slug: string; }
-interface Brand    { brand_id: number; brand_name: string; }
-interface Pagination { total: number; page: number; limit: number; totalPages: number; }
+interface Category {
+  category_id: number;
+  category_name: string;
+  slug: string;
+}
+interface Brand {
+  brand_id: number;
+  brand_name: string;
+}
+interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 const fmt = (n: number) => new Intl.NumberFormat("vi-VN").format(n) + "đ";
 
 const SORT_OPTIONS = [
-  { value: "newest",     label: "Mới nhất"     },
-  { value: "sold",       label: "Bán chạy"     },
-  { value: "rating",     label: "Đánh giá cao" },
-  { value: "price_asc",  label: "Giá tăng dần" },
+  { value: "newest", label: "Mới nhất" },
+  { value: "sold", label: "Bán chạy" },
+  { value: "rating", label: "Đánh giá cao" },
+  { value: "price_asc", label: "Giá tăng dần" },
   { value: "price_desc", label: "Giá giảm dần" },
 ];
 
 /* ── Product Card ───────────────────────────────────────────────────────── */
 function ProductCard({ p }: { p: Product }) {
-  const { addItem, removeItem, isInComparison, items, openModal } = useComparison();
+  const { addItem, removeItem, isInComparison } = useComparison();
   const inCompare = isInComparison(p.id);
-  const [toast, setToast] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const handleCompare = () => {
     if (inCompare) {
       removeItem(p.id);
-      return;
-    }
-    const result = addItem({
-      id: p.id, ten: p.ten, slug: p.slug, thumbnail: p.thumbnail,
-      gia: p.gia, giaSale: p.giaSale, giamGia: p.giamGia,
-      danhGia: p.danhGia, thuongHieu: p.thuongHieu, categoryName: p.categoryName,
-    });
-    if (result === 'ok') {
-      openModal(p.categoryName);
-    } else if (result === 'category_mismatch') {
-      showToast(`Chỉ so sánh cùng danh mục "${items[0]?.categoryName ?? ''}"`);
-    } else if (result === 'max') {
-      showToast('Tối đa 3 sản phẩm trong danh sách so sánh');
+    } else {
+      addItem({
+        id: p.id,
+        ten: p.ten,
+        slug: p.slug,
+        thumbnail: p.thumbnail,
+        gia: p.gia,
+        giaSale: p.giaSale,
+        giamGia: p.giamGia,
+        danhGia: p.danhGia,
+        thuongHieu: p.thuongHieu,
+        categoryName: p.categoryName,
+      });
     }
   };
 
   return (
-    <div className="group flex flex-col h-full relative">
+    <div className="group flex flex-col h-full">
       <Link href={`/sanpham/${p.slug}`} className="flex-1 block">
         <div className="bg-white border border-gray-100 rounded-t-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col h-full relative">
           {p.badge && (
@@ -84,32 +105,35 @@ function ProductCard({ p }: { p: Product }) {
             />
           </div>
           <div className="p-4 flex flex-col flex-1 gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-red-500">{p.thuongHieu}</p>
-            <h3 className="font-semibold text-gray-800 text-sm leading-snug line-clamp-2 flex-1">{p.ten}</h3>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-red-500">
+              {p.thuongHieu}
+            </p>
+            <h3 className="font-semibold text-gray-800 text-sm leading-snug line-clamp-2 flex-1">
+              {p.ten}
+            </h3>
             <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 mt-auto">
               <div>
-                <p className="font-bold text-gray-900 text-[15px]">{fmt(p.giaSale ?? p.gia)}</p>
+                <p className="font-bold text-gray-900 text-[15px]">
+                  {fmt(p.giaSale ?? p.gia)}
+                </p>
                 {p.giamGia > 0 && (
-                  <p className="text-xs text-gray-400 line-through">{fmt(p.gia)}</p>
+                  <p className="text-xs text-gray-400 line-through">
+                    {fmt(p.gia)}
+                  </p>
                 )}
               </div>
               {p.danhGia > 0 && (
                 <div className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span className="text-xs text-gray-600 font-medium">{p.danhGia.toFixed(1)}</span>
+                  <span className="text-xs text-gray-600 font-medium">
+                    {p.danhGia.toFixed(1)}
+                  </span>
                 </div>
               )}
             </div>
           </div>
         </div>
       </Link>
-      {toast && (
-        <div className="absolute bottom-11 left-0 right-0 z-20 flex justify-center pointer-events-none">
-          <span className="bg-gray-900/90 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg shadow-lg text-center max-w-[90%]">
-            {toast}
-          </span>
-        </div>
-      )}
       <button
         onClick={handleCompare}
         className={`flex items-center justify-center gap-1.5 py-2 text-[11px] font-medium rounded-b-2xl border border-t-0 transition-all ${
@@ -142,21 +166,26 @@ function SkeletonCard() {
 /* ── Main listing content ───────────────────────────────────────────────── */
 function ProductsContent() {
   const searchParams = useSearchParams();
-  const router       = useRouter();
+  const router = useRouter();
 
-  const danhMucSlug  = searchParams.get("danh-muc")    || "";
+  const danhMucSlug = searchParams.get("danh-muc") || "";
   const thuongHieuId = searchParams.get("thuong-hieu") || "";
-  const sort         = searchParams.get("sort")         || "newest";
-  const currentPage  = parseInt(searchParams.get("trang") || "1");
-  const keyword      = searchParams.get("tu-khoa")      || "";
+  const sort = searchParams.get("sort") || "newest";
+  const currentPage = parseInt(searchParams.get("trang") || "1");
+  const keyword = searchParams.get("tu-khoa") || "";
 
-  const [products,      setProducts]      = useState<Product[]>([]);
-  const [categories,    setCategories]    = useState<Category[]>([]);
-  const [brands,        setBrands]        = useState<Brand[]>([]);
-  const [pagination,    setPagination]    = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 1 });
-  const [loading,       setLoading]       = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 1,
+  });
+  const [loading, setLoading] = useState(true);
   const [loadingBrands, setLoadingBrands] = useState(false);
-  const [sortOpen,      setSortOpen]      = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
 
   /* ── push URL ── */
@@ -164,7 +193,8 @@ function ProductsContent() {
     (updates: Record<string, string | null>) => {
       const p = new URLSearchParams(searchParams.toString());
       Object.entries(updates).forEach(([k, v]) => {
-        if (!v) p.delete(k); else p.set(k, v);
+        if (!v) p.delete(k);
+        else p.set(k, v);
       });
       if (!("trang" in updates)) p.delete("trang");
       router.push(`/sanpham?${p.toString()}`);
@@ -186,7 +216,9 @@ function ProductsContent() {
   useEffect(() => {
     fetch(`${API_BASE}/api/categories`)
       .then((r) => r.json())
-      .then((j) => { if (j.success) setCategories(j.data); });
+      .then((j) => {
+        if (j.success) setCategories(j.data);
+      });
   }, []);
 
   /* ── Fetch brands (per category) ── */
@@ -197,7 +229,9 @@ function ProductsContent() {
       : `${API_BASE}/api/brands`;
     fetch(url)
       .then((r) => r.json())
-      .then((j) => { if (j.success) setBrands(j.data); })
+      .then((j) => {
+        if (j.success) setBrands(j.data);
+      })
       .finally(() => setLoadingBrands(false));
   }, [danhMucSlug]);
 
@@ -206,12 +240,15 @@ function ProductsContent() {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        page: String(currentPage), limit: "20", sort, status: "active",
-        ...(danhMucSlug  && { category_slug: danhMucSlug }),
+        page: String(currentPage),
+        limit: "20",
+        sort,
+        status: "active",
+        ...(danhMucSlug && { category_slug: danhMucSlug }),
         ...(thuongHieuId && { brand_id: thuongHieuId }),
-        ...(keyword      && { search: keyword }),
+        ...(keyword && { search: keyword }),
       });
-      const res  = await fetch(`${API_BASE}/api/products?${params}`);
+      const res = await fetch(`${API_BASE}/api/products?${params}`);
       const json = await res.json();
       if (json.success) {
         setProducts(json.data);
@@ -224,26 +261,39 @@ function ProductsContent() {
     }
   }, [danhMucSlug, thuongHieuId, sort, currentPage, keyword]);
 
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   /* ── Derived ── */
-  const selectedCat  = categories.find((c) => c.slug === danhMucSlug);
-  const sortLabel    = SORT_OPTIONS.find((o) => o.value === sort)?.label || "Mới nhất";
+  const selectedCat = categories.find((c) => c.slug === danhMucSlug);
+  const sortLabel =
+    SORT_OPTIONS.find((o) => o.value === sort)?.label || "Mới nhất";
 
   /* ── Render ── */
   return (
     <>
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-[12.5px] text-gray-400 mb-4">
-        <Link href="/" className="flex items-center gap-1 hover:text-red-500 transition-colors">
+        <Link
+          href="/"
+          className="flex items-center gap-1 hover:text-red-500 transition-colors"
+        >
           <Home className="w-3 h-3" /> Trang chủ
         </Link>
         <ChevronRight className="w-3 h-3 text-gray-300" />
         {selectedCat ? (
           <>
-            <Link href="/sanpham" className="hover:text-red-500 transition-colors">Sản phẩm</Link>
+            <Link
+              href="/sanpham"
+              className="hover:text-red-500 transition-colors"
+            >
+              Sản phẩm
+            </Link>
             <ChevronRight className="w-3 h-3 text-gray-300" />
-            <span className="text-gray-700 font-medium">{selectedCat.category_name}</span>
+            <span className="text-gray-700 font-medium">
+              {selectedCat.category_name}
+            </span>
           </>
         ) : (
           <span className="text-gray-700 font-medium">Tất cả sản phẩm</span>
@@ -252,12 +302,13 @@ function ProductsContent() {
 
       {/* ── Filter bar ── */}
       <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden mb-5">
-
         {/* Row 1: Category pills */}
         <div className="px-4 pt-3 pb-3 border-b border-gray-100">
           <div className="flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
             <button
-              onClick={() => pushParams({ "danh-muc": null, "thuong-hieu": null })}
+              onClick={() =>
+                pushParams({ "danh-muc": null, "thuong-hieu": null })
+              }
               className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-medium transition-all ${
                 !danhMucSlug
                   ? "bg-red-600 text-white shadow-sm"
@@ -269,7 +320,9 @@ function ProductsContent() {
             {categories.map((cat) => (
               <button
                 key={cat.slug}
-                onClick={() => pushParams({ "danh-muc": cat.slug, "thuong-hieu": null })}
+                onClick={() =>
+                  pushParams({ "danh-muc": cat.slug, "thuong-hieu": null })
+                }
                 className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-medium whitespace-nowrap transition-all ${
                   danhMucSlug === cat.slug
                     ? "bg-red-600 text-white shadow-sm"
@@ -284,13 +337,15 @@ function ProductsContent() {
 
         {/* Row 2: Brand pills + count + sort */}
         <div className="px-4 py-2.5 flex items-center gap-3 min-h-[46px]">
-
           {/* Brand pills (scrollable) */}
           <div className="flex items-center gap-2 flex-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
             {loadingBrands ? (
               <>
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="shrink-0 h-7 w-20 bg-gray-100 rounded-full animate-pulse" />
+                  <div
+                    key={i}
+                    className="shrink-0 h-7 w-20 bg-gray-100 rounded-full animate-pulse"
+                  />
                 ))}
               </>
             ) : brands.length > 0 ? (
@@ -303,7 +358,11 @@ function ProductsContent() {
                   return (
                     <button
                       key={b.brand_id}
-                      onClick={() => pushParams({ "thuong-hieu": active ? null : String(b.brand_id) })}
+                      onClick={() =>
+                        pushParams({
+                          "thuong-hieu": active ? null : String(b.brand_id),
+                        })
+                      }
                       className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-medium border transition-all whitespace-nowrap ${
                         active
                           ? "border-red-500 bg-red-50 text-red-700"
@@ -325,7 +384,9 @@ function ProductsContent() {
           {/* Count + Sort */}
           <div className="shrink-0 flex items-center gap-3 pl-3 border-l border-gray-100">
             <span className="text-[12.5px] text-gray-400 whitespace-nowrap hidden sm:block">
-              {loading ? "Đang tải..." : `${pagination.total.toLocaleString("vi-VN")} sản phẩm`}
+              {loading
+                ? "Đang tải..."
+                : `${pagination.total.toLocaleString("vi-VN")} sản phẩm`}
             </span>
 
             <div ref={sortRef} className="relative">
@@ -334,16 +395,23 @@ function ProductsContent() {
                 className="flex items-center gap-2 border border-gray-200 rounded-xl px-3.5 py-1.5 text-[13px] text-gray-700 bg-white hover:border-red-300 hover:text-red-600 transition-colors whitespace-nowrap"
               >
                 {sortLabel}
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${sortOpen ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${sortOpen ? "rotate-180" : ""}`}
+                />
               </button>
               {sortOpen && (
                 <div className="absolute right-0 top-full mt-1.5 z-30 bg-white border border-gray-100 rounded-2xl shadow-lg min-w-[170px] py-1.5 overflow-hidden">
                   {SORT_OPTIONS.map((o) => (
                     <button
                       key={o.value}
-                      onClick={() => { pushParams({ sort: o.value }); setSortOpen(false); }}
+                      onClick={() => {
+                        pushParams({ sort: o.value });
+                        setSortOpen(false);
+                      }}
                       className={`w-full text-left text-[13px] px-4 py-2.5 hover:bg-gray-50 transition-colors ${
-                        sort === o.value ? "text-red-600 font-semibold bg-red-50/40" : "text-gray-700"
+                        sort === o.value
+                          ? "text-red-600 font-semibold bg-red-50/40"
+                          : "text-gray-700"
                       }`}
                     >
                       {o.label}
@@ -370,7 +438,13 @@ function ProductsContent() {
           </span>
           {(danhMucSlug || thuongHieuId) && (
             <button
-              onClick={() => pushParams({ "danh-muc": null, "thuong-hieu": null, "tu-khoa": null })}
+              onClick={() =>
+                pushParams({
+                  "danh-muc": null,
+                  "thuong-hieu": null,
+                  "tu-khoa": null,
+                })
+              }
               className="text-[12.5px] text-gray-500 hover:text-red-600 font-medium transition-colors"
             >
               Xóa tất cả bộ lọc
@@ -382,7 +456,9 @@ function ProductsContent() {
       {/* Product grid */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {Array.from({ length: 20 }).map((_, i) => <SkeletonCard key={i} />)}
+          {Array.from({ length: 20 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl py-20 flex flex-col items-center gap-4">
@@ -390,11 +466,21 @@ function ProductsContent() {
             <Package className="w-8 h-8 text-gray-300" />
           </div>
           <div className="text-center">
-            <p className="text-[15px] font-semibold text-gray-700">Không tìm thấy sản phẩm</p>
-            <p className="text-[13px] text-gray-400 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+            <p className="text-[15px] font-semibold text-gray-700">
+              Không tìm thấy sản phẩm
+            </p>
+            <p className="text-[13px] text-gray-400 mt-1">
+              Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
+            </p>
           </div>
           <button
-            onClick={() => pushParams({ "danh-muc": null, "thuong-hieu": null, "tu-khoa": null })}
+            onClick={() =>
+              pushParams({
+                "danh-muc": null,
+                "thuong-hieu": null,
+                "tu-khoa": null,
+              })
+            }
             className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
           >
             Xóa bộ lọc
@@ -402,7 +488,9 @@ function ProductsContent() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {products.map((p) => <ProductCard key={p.id} p={p} />)}
+          {products.map((p) => (
+            <ProductCard key={p.id} p={p} />
+          ))}
         </div>
       )}
 
@@ -418,20 +506,30 @@ function ProductsContent() {
           </button>
           {(() => {
             const total = pagination.totalPages;
-            const cur   = currentPage;
+            const cur = currentPage;
             const pages: (number | "...")[] = [];
             if (total <= 7) {
               for (let i = 1; i <= total; i++) pages.push(i);
             } else {
               pages.push(1);
               if (cur > 3) pages.push("...");
-              for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i);
+              for (
+                let i = Math.max(2, cur - 1);
+                i <= Math.min(total - 1, cur + 1);
+                i++
+              )
+                pages.push(i);
               if (cur < total - 2) pages.push("...");
               pages.push(total);
             }
             return pages.map((n, i) =>
               n === "..." ? (
-                <span key={`e${i}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">...</span>
+                <span
+                  key={`e${i}`}
+                  className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm"
+                >
+                  ...
+                </span>
               ) : (
                 <button
                   key={n}
@@ -463,25 +561,30 @@ function ProductsContent() {
 /* ── Page export ────────────────────────────────────────────────────────── */
 export default function SanPhamPage() {
   return (
-    <Suspense
-      fallback={
-        <div>
-          <div className="bg-white border border-gray-100 rounded-2xl h-28 mb-5 animate-pulse" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div key={i} className="bg-white border border-gray-100 rounded-2xl overflow-hidden animate-pulse">
-                <div className="bg-gray-200 h-48" />
-                <div className="p-4 space-y-2">
-                  <div className="h-3 bg-gray-100 rounded w-1/3" />
-                  <div className="h-4 bg-gray-100 rounded w-3/4" />
+    <div className="min-h-screen bg-white">
+      <Suspense
+        fallback={
+          <div>
+            <div className="bg-white border border-gray-100 rounded-2xl h-28 mb-5 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-gray-100 rounded-2xl overflow-hidden animate-pulse"
+                >
+                  <div className="bg-gray-200 h-48" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-3 bg-gray-100 rounded w-1/3" />
+                    <div className="h-4 bg-gray-100 rounded w-3/4" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      }
-    >
-      <ProductsContent />
-    </Suspense>
+        }
+      >
+        <ProductsContent />
+      </Suspense>
+    </div>
   );
 }

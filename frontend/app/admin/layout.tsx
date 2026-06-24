@@ -20,11 +20,8 @@ import {
   LogOut,
   Home,
   ChevronRight,
-  Sun,
-  Moon,
   type LucideIcon,
 } from "lucide-react";
-import { useTheme } from "../components/ThemeContext";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -42,37 +39,78 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "Tổng quan",
     items: [
-      { href: "/admin", label: "Dashboard", Icon: LayoutDashboard, badge: null },
+      {
+        href: "/admin",
+        label: "Dashboard",
+        Icon: LayoutDashboard,
+        badge: null,
+      },
     ],
   },
   {
     section: "Danh mục",
     items: [
-      { href: "/admin/products",   label: "Quản lý sản phẩm",   Icon: Package,      badge: null },
-      { href: "/admin/orders",     label: "Quản lý đơn hàng",   Icon: ShoppingCart, badge: 12   },
-      { href: "/admin/users",      label: "Quản lý khách hàng", Icon: Users,        badge: null },
-      { href: "/admin/categories", label: "Danh mục",           Icon: FolderOpen,   badge: null },
-      { href: "/admin/promotions", label: "Mã giảm giá",        Icon: Tag,          badge: 3    },
-      { href: "/admin/reports",    label: "Báo cáo thống kê",   Icon: BarChart2,    badge: null },
+      {
+        href: "/admin/products",
+        label: "Quản lý sản phẩm",
+        Icon: Package,
+        badge: null,
+      },
+      {
+        href: "/admin/orders",
+        label: "Quản lý đơn hàng",
+        Icon: ShoppingCart,
+        badge: 12,
+      },
+      {
+        href: "/admin/users",
+        label: "Quản lý khách hàng",
+        Icon: Users,
+        badge: null,
+      },
+      {
+        href: "/admin/categories",
+        label: "Danh mục",
+        Icon: FolderOpen,
+        badge: null,
+      },
+      { href: "/admin/promotions", label: "Mã giảm giá", Icon: Tag, badge: 3 },
+      {
+        href: "/admin/reports",
+        label: "Báo cáo thống kê",
+        Icon: BarChart2,
+        badge: null,
+      },
+      {
+        href: "/admin/questions",
+        label: "Hỏi đáp & bình luận",
+        Icon: HelpCircle,
+        badge: 5,
+      },
     ],
   },
   {
     section: "Cấu hình",
     items: [
-      { href: "/admin/settings",   label: "Cài đặt",            Icon: Settings,     badge: null },
+      {
+        href: "/admin/settings",
+        label: "Cài đặt",
+        Icon: Settings,
+        badge: null,
+      },
     ],
   },
 ];
 
 const PAGE_LABELS: Record<string, string> = {
-  "/admin":            "Dashboard",
-  "/admin/products":   "Quản lý sản phẩm",
-  "/admin/orders":     "Quản lý đơn hàng",
-  "/admin/users":      "Quản lý khách hàng",
+  "/admin": "Dashboard",
+  "/admin/products": "Quản lý sản phẩm",
+  "/admin/orders": "Quản lý đơn hàng",
+  "/admin/users": "Quản lý khách hàng",
   "/admin/categories": "Danh mục",
   "/admin/promotions": "Mã giảm giá",
-  "/admin/reports":    "Báo cáo thống kê",
-  "/admin/settings":   "Cài đặt",
+  "/admin/reports": "Báo cáo thống kê",
+  "/admin/settings": "Cài đặt",
 };
 
 function getPageLabel(pathname: string): string {
@@ -83,11 +121,14 @@ function getPageLabel(pathname: string): string {
   return match ? PAGE_LABELS[match] : "Admin";
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname  = usePathname();
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
   const [search, setSearch] = useState("");
   const pageLabel = getPageLabel(pathname ?? "");
-  const { theme, toggleTheme } = useTheme();
 
   const isActive = (href: string) =>
     href === "/admin"
@@ -96,19 +137,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className={`flex min-h-screen bg-[#F5F6FA] ${plusJakarta.className}`}>
-
       {/* ═══ SIDEBAR ═══ */}
       <aside className="w-[228px] shrink-0 bg-white border-r border-gray-100 flex flex-col h-screen fixed left-0 top-0 z-50 overflow-y-auto shadow-[1px_0_0_0_#F3F4F6]">
-
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 shrink-0">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-[15px] shrink-0"
-               style={{ background: "linear-gradient(135deg,#D32F2F,#B71C1C)" }}>
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-[15px] shrink-0"
+            style={{ background: "linear-gradient(135deg,#D32F2F,#B71C1C)" }}
+          >
             S
           </div>
           <div>
-            <div className="text-[15px] font-bold text-gray-900 leading-tight tracking-tight">SmartHub</div>
-            <div className="text-[9.5px] text-gray-400 tracking-[1.5px] uppercase mt-0.5">Admin Panel</div>
+            <div className="text-[15px] font-bold text-gray-900 leading-tight tracking-tight">
+              SmartHub
+            </div>
+            <div className="text-[9.5px] text-gray-400 tracking-[1.5px] uppercase mt-0.5">
+              Admin Panel
+            </div>
           </div>
         </div>
 
@@ -128,9 +173,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     href={href}
                     className={`
                       flex items-center gap-3 mx-2.5 px-3 py-[9px] rounded-xl text-[13px] no-underline transition-all duration-150 mb-0.5
-                      ${active
-                        ? "text-[#D32F2F] bg-[#FFF5F5] font-semibold"
-                        : "text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-normal"}
+                      ${
+                        active
+                          ? "text-[#D32F2F] bg-[#FFF5F5] font-semibold"
+                          : "text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-normal"
+                      }
                     `}
                   >
                     <Icon
@@ -153,13 +200,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User footer */}
         <div className="flex items-center gap-2.5 px-4 py-3.5 border-t border-gray-100 shrink-0 bg-gray-50/60">
-          <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-               style={{ background: "linear-gradient(135deg,#D32F2F,#B71C1C)" }}>
+          <div
+            className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+            style={{ background: "linear-gradient(135deg,#D32F2F,#B71C1C)" }}
+          >
             AD
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-semibold text-gray-900 truncate">Admin</div>
-            <div className="text-[11px] text-gray-400 leading-tight">Quản trị viên</div>
+            <div className="text-[13px] font-semibold text-gray-900 truncate">
+              Admin
+            </div>
+            <div className="text-[11px] text-gray-400 leading-tight">
+              Quản trị viên
+            </div>
           </div>
           <button
             title="Đăng xuất"
@@ -172,10 +225,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ═══ MAIN ═══ */}
       <div className="flex-1 ml-[228px] flex flex-col min-h-screen">
-
         {/* TOPBAR */}
         <header className="bg-white h-[58px] flex items-center px-6 gap-4 border-b border-gray-100 sticky top-0 z-40 shrink-0">
-
           {/* Breadcrumb */}
           <div className="flex items-center gap-1.5 text-[12.5px] text-gray-400 shrink-0">
             <Home size={13} className="text-gray-400" />
@@ -197,21 +248,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           {/* Right actions */}
           <div className="flex items-center gap-2 ml-auto">
-
-            {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              title={theme === "dark" ? "Chuyển sang nền sáng" : "Chuyển sang nền tối"}
-              aria-label="Đổi giao diện sáng/tối"
-              className="w-9 h-9 rounded-xl border border-gray-200 bg-white flex items-center justify-center cursor-pointer hover:border-[#D32F2F] hover:bg-[#FFF5F5] transition-all duration-150"
-            >
-              {theme === "dark" ? (
-                <Sun size={16} className="text-amber-400" />
-              ) : (
-                <Moon size={16} className="text-gray-500" />
-              )}
-            </button>
-
             {/* Bell */}
             <button
               title="Thông báo"
@@ -238,13 +274,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-2 cursor-pointer pl-1 pr-2.5 py-1.5 rounded-xl hover:bg-gray-50 transition-colors">
               <div
                 className="w-[30px] h-[30px] rounded-full text-white text-[11px] font-bold flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg,#D32F2F,#B71C1C)" }}
+                style={{
+                  background: "linear-gradient(135deg,#D32F2F,#B71C1C)",
+                }}
               >
                 AD
               </div>
               <div>
-                <div className="text-[12.5px] font-semibold text-gray-900 leading-tight">Admin</div>
-                <div className="text-[10.5px] text-gray-400 leading-tight">Quản trị viên</div>
+                <div className="text-[12.5px] font-semibold text-gray-900 leading-tight">
+                  Admin
+                </div>
+                <div className="text-[10.5px] text-gray-400 leading-tight">
+                  Quản trị viên
+                </div>
               </div>
               <ChevronDown size={13} className="text-gray-400 ml-0.5" />
             </div>
@@ -252,9 +294,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

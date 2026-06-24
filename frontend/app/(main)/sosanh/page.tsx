@@ -1,17 +1,25 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useComparison } from '../../components/comparisonContext';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { useComparison } from "../../components/comparisonContext";
+import Link from "next/link";
 import {
-  Star, ShoppingCart, Repeat, Plus, Home, ChevronRight, X,
-} from 'lucide-react';
-import { useCart } from '../../hooks/useCart';
+  Star,
+  ShoppingCart,
+  Repeat,
+  Plus,
+  Home,
+  ChevronRight,
+  X,
+} from "lucide-react";
+import { useCart } from "../../hooks/useCart";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const fmt = (n: number) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
+    n,
+  );
 
 interface Variant {
   variant_id: number;
@@ -38,22 +46,34 @@ interface ProductDetail {
   variants: Variant[];
 }
 
-const COMPARE_ROWS: { label: string; getValue: (p: ProductDetail) => string }[] = [
-  { label: 'Thương hiệu',  getValue: p => p.thuongHieu },
-  { label: 'Danh mục',     getValue: p => p.categoryName },
-  { label: 'Bảo hành',     getValue: p => p.warranty || 'Theo chính hãng' },
-  { label: 'Đã bán',       getValue: p => `${p.luotBan.toLocaleString('vi-VN')} sản phẩm` },
-  { label: 'Phiên bản',    getValue: p => p.variants?.length ? p.variants.map(v => v.color).join(', ') : 'Một phiên bản' },
-  { label: 'Lượt đánh giá', getValue: p => `${p.luotDanhGia || 0} đánh giá` },
+const COMPARE_ROWS: {
+  label: string;
+  getValue: (p: ProductDetail) => string;
+}[] = [
+  { label: "Thương hiệu", getValue: (p) => p.thuongHieu },
+  { label: "Danh mục", getValue: (p) => p.categoryName },
+  { label: "Bảo hành", getValue: (p) => p.warranty || "Theo chính hãng" },
+  {
+    label: "Đã bán",
+    getValue: (p) => `${p.luotBan.toLocaleString("vi-VN")} sản phẩm`,
+  },
+  {
+    label: "Phiên bản",
+    getValue: (p) =>
+      p.variants?.length
+        ? p.variants.map((v) => v.color).join(", ")
+        : "Một phiên bản",
+  },
+  { label: "Lượt đánh giá", getValue: (p) => `${p.luotDanhGia || 0} đánh giá` },
 ];
 
 function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map(n => (
+      {[1, 2, 3, 4, 5].map((n) => (
         <Star
           key={n}
-          className={`w-3.5 h-3.5 ${n <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`}
+          className={`w-3.5 h-3.5 ${n <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"}`}
         />
       ))}
     </div>
@@ -66,11 +86,6 @@ export default function ComparisonPage() {
   const [loading, setLoading] = useState(true);
   const { addToCart, adding } = useCart();
 
-  // Detect if items have mixed categories (safety net for stale localStorage)
-  const hasMixedCategories =
-    items.length > 1 &&
-    !items.every(p => p.categoryName === items[0].categoryName);
-
   useEffect(() => {
     if (items.length === 0) {
       setProducts([]);
@@ -79,13 +94,13 @@ export default function ComparisonPage() {
     }
     setLoading(true);
     Promise.all(
-      items.map(item =>
+      items.map((item) =>
         fetch(`${API_BASE}/api/products/${item.slug}`)
-          .then(r => r.json())
-          .then(j => (j.success ? j.data as ProductDetail : null))
-          .catch(() => null)
-      )
-    ).then(results => {
+          .then((r) => r.json())
+          .then((j) => (j.success ? (j.data as ProductDetail) : null))
+          .catch(() => null),
+      ),
+    ).then((results) => {
       setProducts(results);
       setLoading(false);
     });
@@ -119,32 +134,15 @@ export default function ComparisonPage() {
         )}
       </div>
 
-      {hasMixedCategories && (
-        <div className="mb-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <span className="text-amber-500 text-base mt-0.5">⚠️</span>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-800">
-              Danh sách so sánh chứa sản phẩm khác danh mục
-            </p>
-            <p className="text-xs text-amber-600 mt-0.5">
-              Chỉ có thể so sánh các sản phẩm cùng danh mục (ví dụ: chỉ điện thoại với điện thoại).
-            </p>
-          </div>
-          <button
-            onClick={clearItems}
-            className="text-xs font-semibold text-amber-700 hover:text-red-600 border border-amber-300 rounded-lg px-3 py-1.5 hover:border-red-300 transition-colors shrink-0"
-          >
-            Xóa và chọn lại
-          </button>
-        </div>
-      )}
-
       {items.length === 0 ? (
         <div className="text-center py-20">
           <Repeat className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg font-semibold mb-2">Chưa có sản phẩm nào để so sánh</p>
+          <p className="text-gray-500 text-lg font-semibold mb-2">
+            Chưa có sản phẩm nào để so sánh
+          </p>
           <p className="text-gray-400 text-sm mb-6">
-            Nhấn nút &ldquo;So sánh&rdquo; trên trang danh sách hoặc chi tiết sản phẩm để thêm
+            Nhấn nút &ldquo;So sánh&rdquo; trên trang danh sách hoặc chi tiết
+            sản phẩm để thêm
           </p>
           <Link
             href="/sanpham"
@@ -169,7 +167,10 @@ export default function ComparisonPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full" style={{ minWidth: `${colCount * 200 + 160}px` }}>
+            <table
+              className="w-full"
+              style={{ minWidth: `${colCount * 200 + 160}px` }}
+            >
               {/* ── Product headers ── */}
               <thead>
                 <tr className="border-b border-gray-100">
@@ -207,7 +208,9 @@ export default function ComparisonPage() {
                           </p>
                         </div>
                       ) : (
-                        <div className="text-gray-400 text-sm py-8">Không tải được</div>
+                        <div className="text-gray-400 text-sm py-8">
+                          Không tải được
+                        </div>
                       )}
                     </th>
                   ))}
@@ -221,7 +224,9 @@ export default function ComparisonPage() {
                         <div className="w-32 h-32 border-2 border-dashed border-gray-200 group-hover/add:border-red-300 rounded-2xl flex items-center justify-center transition-colors">
                           <Plus className="w-8 h-8" />
                         </div>
-                        <span className="text-xs font-medium">Thêm sản phẩm</span>
+                        <span className="text-xs font-medium">
+                          Thêm sản phẩm
+                        </span>
                       </Link>
                     </th>
                   )}
@@ -231,7 +236,9 @@ export default function ComparisonPage() {
               <tbody>
                 {/* ── Giá bán ── */}
                 <tr className="bg-red-50/60 border-b border-gray-100">
-                  <td className="p-5 text-sm font-semibold text-gray-700">Giá bán</td>
+                  <td className="p-5 text-sm font-semibold text-gray-700">
+                    Giá bán
+                  </td>
                   {products.map((product, i) => (
                     <td key={i} className="p-5 text-center">
                       {product ? (
@@ -241,14 +248,18 @@ export default function ComparisonPage() {
                           </p>
                           {product.giamGia > 0 && (
                             <>
-                              <p className="text-xs text-gray-400 line-through">{fmt(product.gia)}</p>
+                              <p className="text-xs text-gray-400 line-through">
+                                {fmt(product.gia)}
+                              </p>
                               <span className="inline-block bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
                                 -{product.giamGia}%
                               </span>
                             </>
                           )}
                         </div>
-                      ) : <span className="text-gray-400">—</span>}
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
                     </td>
                   ))}
                   {items.length < 3 && <td />}
@@ -256,7 +267,9 @@ export default function ComparisonPage() {
 
                 {/* ── Đánh giá ── */}
                 <tr className="border-b border-gray-100">
-                  <td className="p-5 text-sm font-semibold text-gray-700">Đánh giá</td>
+                  <td className="p-5 text-sm font-semibold text-gray-700">
+                    Đánh giá
+                  </td>
                   {products.map((product, i) => (
                     <td key={i} className="p-5 text-center">
                       {product ? (
@@ -266,7 +279,9 @@ export default function ComparisonPage() {
                             {product.danhGia.toFixed(1)} / 5
                           </span>
                         </div>
-                      ) : <span className="text-gray-400">—</span>}
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
                     </td>
                   ))}
                   {items.length < 3 && <td />}
@@ -274,11 +289,23 @@ export default function ComparisonPage() {
 
                 {/* ── Other rows ── */}
                 {COMPARE_ROWS.map((row, ri) => (
-                  <tr key={ri} className={`border-b border-gray-100 ${ri % 2 === 0 ? 'bg-gray-50/40' : ''}`}>
-                    <td className="p-5 text-sm font-semibold text-gray-700">{row.label}</td>
+                  <tr
+                    key={ri}
+                    className={`border-b border-gray-100 ${ri % 2 === 0 ? "bg-gray-50/40" : ""}`}
+                  >
+                    <td className="p-5 text-sm font-semibold text-gray-700">
+                      {row.label}
+                    </td>
                     {products.map((product, i) => (
-                      <td key={i} className="p-5 text-center text-sm text-gray-700">
-                        {product ? row.getValue(product) : <span className="text-gray-400">—</span>}
+                      <td
+                        key={i}
+                        className="p-5 text-center text-sm text-gray-700"
+                      >
+                        {product ? (
+                          row.getValue(product)
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                     ))}
                     {items.length < 3 && <td />}
@@ -287,7 +314,9 @@ export default function ComparisonPage() {
 
                 {/* ── Action row ── */}
                 <tr>
-                  <td className="p-5 text-sm font-semibold text-gray-700">Hành động</td>
+                  <td className="p-5 text-sm font-semibold text-gray-700">
+                    Hành động
+                  </td>
                   {products.map((product, i) => (
                     <td key={i} className="p-5 text-center">
                       {product && (
@@ -300,9 +329,13 @@ export default function ComparisonPage() {
                                 productId: String(product.id),
                                 tenSanPham: product.ten,
                                 hinhAnh: product.thumbnail,
-                                gia: v?.sale_price ?? v?.price ?? product.giaSale ?? product.gia,
+                                gia:
+                                  v?.sale_price ??
+                                  v?.price ??
+                                  product.giaSale ??
+                                  product.gia,
                                 soLuong: 1,
-                                variant: v?.color ?? '',
+                                variant: v?.color ?? "",
                               });
                             }}
                             className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white py-2.5 px-3 rounded-xl text-xs font-semibold transition-colors"
