@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, MapPin, CreditCard, FileText, Package,
   Truck, ShieldCheck, BadgeCheck, Banknote, Building2,
-  Plus, Loader2, CheckCircle2, Lock,
+  Smartphone, Plus, Loader2, CheckCircle2, Lock, ExternalLink,
 } from 'lucide-react';
 import SearchableSelect, { SelectOption } from '../components/SearchableSelect';
 
@@ -75,6 +75,22 @@ const PAYMENT_METHODS = [
     color: 'text-blue-500',
     bg: 'bg-blue-50',
   },
+  {
+    id: 'vnpay',
+    label: 'VNPay',
+    desc: 'Thanh toán qua cổng VNPay (ATM, Visa, Master)',
+    Icon: CreditCard,
+    color: 'text-indigo-500',
+    bg: 'bg-indigo-50',
+  },
+  {
+    id: 'momo',
+    label: 'MoMo',
+    desc: 'Thanh toán qua ví điện tử MoMo',
+    Icon: Smartphone,
+    color: 'text-pink-600',
+    bg: 'bg-pink-50',
+  },
 ];
 
 export default function ThanhToanPage() {
@@ -83,7 +99,7 @@ export default function ThanhToanPage() {
   const [items, setItems]               = useState<CartItem[]>([]);   // chỉ item được chọn
   const [addresses, setAddresses]       = useState<Address[]>([]);
   const [selectedAddr, setSelectedAddr] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'banking'>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'banking' | 'vnpay' | 'momo'>('cod');
   const [ghiChu, setGhiChu]             = useState('');
   const [loading, setLoading]           = useState(true);
   const [placing, setPlacing]           = useState(false);
@@ -225,11 +241,25 @@ export default function ThanhToanPage() {
     const data = await res.json();
     setPlacing(false);
 
-    if (data.success) {
-      localStorage.removeItem('smarthub_checkout_ids');
-      router.push(`/dat-hang-thanh-cong?orderId=${data.order._id}`);
+    if (!data.success) {
+      return alert(data.message || 'Đặt hàng thất bại');
+    }
+
+    localStorage.removeItem('smarthub_checkout_ids');
+
+    if (paymentMethod === 'vnpay' || paymentMethod === 'momo') {
+      const payRes = await fetch(`${API_URL}/api/payment/create-${paymentMethod}/${data.order._id}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payData = await payRes.json();
+      if (payData.success) {
+        window.location.href = payData.paymentUrl;
+      } else {
+        alert(payData.message || `Không thể tạo URL thanh toán ${paymentMethod === 'vnpay' ? 'VNPay' : 'MoMo'}`);
+      }
     } else {
-      alert(data.message || 'Đặt hàng thất bại');
+      router.push(`/dat-hang-thanh-cong?orderId=${data.order._id}`);
     }
   };
 
@@ -435,7 +465,7 @@ export default function ThanhToanPage() {
                       name="payment"
                       value={id}
                       checked={paymentMethod === id}
-                      onChange={() => setPaymentMethod(id as 'cod' | 'banking')}
+                      onChange={() => setPaymentMethod(id as 'cod' | 'banking' | 'vnpay' | 'momo')}
                       className="accent-red-500"
                     />
                     <div className={`w-10 h-10 ${bg} rounded-lg flex items-center justify-center shrink-0`}>

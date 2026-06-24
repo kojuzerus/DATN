@@ -1,8 +1,8 @@
+require("dotenv").config();
 const express  = require("express");
 const mongoose = require("mongoose");
 const cors     = require("cors");
 const path     = require("path");
-require("dotenv").config();
 
 const productRoutes  = require("./routes/product");
 const authRoutes     = require("./routes/auth");
@@ -12,6 +12,7 @@ const brandRoutes    = require("./routes/brand");
 const aiRoutes       = require("./routes/ai");
 const addressRoutes  = require("./routes/address");
 const orderRoutes    = require("./routes/order");
+const paymentRoutes  = require("./routes/payment");
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,7 @@ app.use("/api/brands",     brandRoutes);
 app.use("/api/ai",         aiRoutes);
 app.use("/api/addresses",  addressRoutes);
 app.use("/api/orders",     orderRoutes);
+app.use("/api/payment",    paymentRoutes);
 
 app.get("/api/health", (_, res) =>
   res.json({ status: "ok", time: new Date().toISOString() })

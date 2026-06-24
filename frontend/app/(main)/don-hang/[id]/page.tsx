@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   Package, CheckCircle2, Truck, PackageCheck, XCircle,
   ChevronRight, MapPin, CreditCard, FileText, Check,
-  AlertTriangle, Banknote, ArrowLeft, ClipboardList,
+  AlertTriangle, Banknote, ArrowLeft, ClipboardList, Smartphone,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -21,6 +21,13 @@ interface OrderItem {
   variant: string;
 }
 
+interface PaymentInfo {
+  transactionNo: string;
+  bankCode: string;
+  payDate: string;
+  responseCode: string;
+}
+
 interface Order {
   _id: string;
   items: OrderItem[];
@@ -30,7 +37,9 @@ interface Order {
   district: string;
   ward: string;
   detailAddress: string;
-  paymentMethod: 'cod' | 'banking';
+  paymentMethod: 'cod' | 'banking' | 'vnpay' | 'momo';
+  paymentStatus: 'unpaid' | 'paid' | 'failed' | 'refunded';
+  paymentInfo?: PaymentInfo;
   tongTien: number;
   phiGiaoHang: number;
   tongThanhToan: number;
@@ -369,20 +378,52 @@ export default function DonHangChiTietPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-5">
             <div className="flex items-center gap-2 mb-4">
               <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                order.paymentMethod === 'cod' ? 'bg-green-50' : 'bg-blue-50'
+                order.paymentMethod === 'cod' ? 'bg-green-50' :
+                order.paymentMethod === 'vnpay' ? 'bg-indigo-50' :
+                order.paymentMethod === 'momo' ? 'bg-pink-50' : 'bg-blue-50'
               }`}>
-                {order.paymentMethod === 'cod'
-                  ? <Banknote className="w-4 h-4 text-green-500" />
-                  : <CreditCard className="w-4 h-4 text-blue-500" />
-                }
+                {order.paymentMethod === 'cod' ? <Banknote className="w-4 h-4 text-green-500" /> :
+                 order.paymentMethod === 'vnpay' ? <CreditCard className="w-4 h-4 text-indigo-500" /> :
+                 order.paymentMethod === 'momo' ? <Smartphone className="w-4 h-4 text-pink-500" /> :
+                 <CreditCard className="w-4 h-4 text-blue-500" />}
               </div>
               <h3 className="text-sm font-bold text-gray-800">Thanh toán</h3>
             </div>
             <p className="text-sm text-gray-600">
-              {order.paymentMethod === 'cod'
-                ? 'Thanh toán khi nhận hàng (COD)'
-                : 'Chuyển khoản ngân hàng'}
+              {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' :
+               order.paymentMethod === 'vnpay' ? 'VNPay' :
+               order.paymentMethod === 'momo' ? 'MoMo' :
+               'Chuyển khoản ngân hàng'}
             </p>
+            {order.paymentMethod === 'vnpay' && (
+              <div className="mt-3 space-y-1.5 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    order.paymentStatus === 'paid'
+                      ? 'bg-green-100 text-green-700'
+                      : order.paymentStatus === 'failed'
+                      ? 'bg-red-100 text-red-600'
+                      : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {order.paymentStatus === 'paid' ? 'Đã thanh toán' :
+                     order.paymentStatus === 'failed' ? 'Thanh toán thất bại' :
+                     'Chưa thanh toán'}
+                  </span>
+                </div>
+                {order.paymentInfo?.transactionNo && (
+                  <div className="text-gray-500">
+                    <span className="text-xs text-gray-400">Mã GD VNPay: </span>
+                    <span className="font-mono font-medium">{order.paymentInfo.transactionNo}</span>
+                  </div>
+                )}
+                {order.paymentInfo?.bankCode && (
+                  <div className="text-gray-500">
+                    <span className="text-xs text-gray-400">Ngân hàng: </span>
+                    <span>{order.paymentInfo.bankCode}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Notes */}

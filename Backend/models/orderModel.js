@@ -23,8 +23,21 @@ const orderSchema = new mongoose.Schema({
 
   paymentMethod: {
     type: String,
-    enum: ["cod", "banking"],
+    enum: ["cod", "banking", "vnpay", "momo"],
     default: "cod",
+  },
+
+  paymentStatus: {
+    type: String,
+    enum: ["unpaid", "paid", "failed", "refunded"],
+    default: "unpaid",
+  },
+
+  paymentInfo: {
+    transactionNo: { type: String, default: "" },
+    bankCode: { type: String, default: "" },
+    payDate: { type: String, default: "" },
+    responseCode: { type: String, default: "" },
   },
 
   tongTien:       { type: Number, required: true },

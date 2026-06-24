@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Search, RefreshCw, Eye, X, Package, ChevronDown,
-  User, MapPin, CreditCard, Banknote, AlertTriangle, CheckCircle2,
+  User, MapPin, CreditCard, Banknote, AlertTriangle, CheckCircle2, Smartphone,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -20,6 +20,13 @@ interface OrderItem {
   variant: string;
 }
 
+interface PaymentInfo {
+  transactionNo: string;
+  bankCode: string;
+  payDate: string;
+  responseCode: string;
+}
+
 interface Order {
   _id: string;
   userId: { _id: string; hoTen: string; soDienThoai?: string; email?: string } | null;
@@ -30,7 +37,9 @@ interface Order {
   district: string;
   ward: string;
   detailAddress: string;
-  paymentMethod: "cod" | "banking";
+  paymentMethod: "cod" | "banking" | "vnpay" | "momo";
+  paymentStatus?: "unpaid" | "paid" | "failed" | "refunded";
+  paymentInfo?: PaymentInfo;
   tongTien: number;
   phiGiaoHang: number;
   tongThanhToan: number;
@@ -195,14 +204,37 @@ function OrderDetailModal({
 
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-1.5 mb-2.5">
-                {order.paymentMethod === "cod"
-                  ? <Banknote className="w-3.5 h-3.5 text-green-500" />
-                  : <CreditCard className="w-3.5 h-3.5 text-blue-500" />}
+                {order.paymentMethod === "cod" ? <Banknote className="w-3.5 h-3.5 text-green-500" /> :
+                 order.paymentMethod === "vnpay" ? <CreditCard className="w-3.5 h-3.5 text-indigo-500" /> :
+                 order.paymentMethod === "momo" ? <Smartphone className="w-3.5 h-3.5 text-pink-500" /> :
+                 <CreditCard className="w-3.5 h-3.5 text-blue-500" />}
                 <p className="text-[10.5px] font-bold text-gray-400 uppercase tracking-wide">Thanh toán</p>
               </div>
-              <p className="text-[13px] font-medium text-gray-700 mb-3">
-                {order.paymentMethod === "cod" ? "COD (Khi nhận hàng)" : "Chuyển khoản ngân hàng"}
+              <p className="text-[13px] font-medium text-gray-700 mb-1">
+                {order.paymentMethod === "cod" ? "COD (Khi nhận hàng)" :
+                 order.paymentMethod === "vnpay" ? "VNPay" :
+                 "Chuyển khoản ngân hàng"}
               </p>
+              {order.paymentMethod === "vnpay" && (
+                <div className="mb-3 flex items-center gap-2">
+                  <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+                    order.paymentStatus === "paid"
+                      ? "bg-green-100 text-green-700"
+                      : order.paymentStatus === "failed"
+                      ? "bg-red-100 text-red-600"
+                      : "bg-amber-100 text-amber-700"
+                  }`}>
+                    {order.paymentStatus === "paid" ? "Đã thanh toán" :
+                     order.paymentStatus === "failed" ? "Thanh toán thất bại" :
+                     "Chưa thanh toán"}
+                  </span>
+                  {order.paymentInfo?.transactionNo && (
+                    <span className="text-[11px] text-gray-400 font-mono">
+                      GD: {order.paymentInfo.transactionNo}
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="space-y-1.5 border-t border-gray-200 pt-3">
                 <div className="flex justify-between text-[12px] text-gray-500">
                   <span>Tạm tính</span><span>{fmt(order.tongTien)}</span>
@@ -523,13 +555,33 @@ export default function AdminOrdersPage() {
 
                       {/* Thanh toán */}
                       <td className="px-5 py-3.5">
-                        <span className={`inline-flex items-center text-[11.5px] font-medium px-2 py-1 rounded-lg border ${
-                          order.paymentMethod === "cod"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : "bg-blue-50 text-blue-700 border-blue-200"
-                        }`}>
-                          {order.paymentMethod === "cod" ? "COD" : "Chuyển khoản"}
-                        </span>
+                        <div className="space-y-1">
+                          <span className={`inline-flex items-center text-[11.5px] font-medium px-2 py-1 rounded-lg border ${
+                            order.paymentMethod === "cod"
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : order.paymentMethod === "vnpay"
+                              ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                              : order.paymentMethod === "momo"
+                              ? "bg-pink-50 text-pink-700 border-pink-200"
+                              : "bg-blue-50 text-blue-700 border-blue-200"
+                          }`}>
+                            {order.paymentMethod === "cod" ? "COD" :
+                             order.paymentMethod === "vnpay" ? "VNPay" :
+                             order.paymentMethod === "momo" ? "MoMo" :
+                             "Chuyển khoản"}
+                          </span>
+                          {order.paymentStatus && (
+                            <p className={`text-[10px] font-medium ${
+                              order.paymentStatus === "paid" ? "text-green-600" :
+                              order.paymentStatus === "failed" ? "text-red-500" :
+                              "text-amber-600"
+                            }`}>
+                              {order.paymentStatus === "paid" ? "Đã thanh toán" :
+                               order.paymentStatus === "failed" ? "Thất bại" :
+                               "Chưa thanh toán"}
+                            </p>
+                          )}
+                        </div>
                       </td>
 
                       {/* Trạng thái */}
